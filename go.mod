@@ -1,4 +1,3 @@
 module matyas-cyril/email-valid
 
-go 1.19
-
+go 1.20
