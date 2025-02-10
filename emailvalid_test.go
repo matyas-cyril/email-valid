@@ -3,10 +3,12 @@ package emailvalid_test
 import (
 	"fmt"
 	myEmailValid "matyas-cyril/email-valid"
+	"net"
+	"strings"
 	"testing"
 )
 
-const EMAIL string = "\"Joe Lamèche\" <joe.lameche@free.fr>"
+const EMAIL string = "\"Joe Lamèche\" <joe.lameche@test.fr>"
 
 // go test -timeout 3s -run ^TestNewEmail$
 func TestNewEmail(t *testing.T) {
@@ -32,10 +34,30 @@ func TestGetMX(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	json, err := e.GetMX()
+	mapMX, err := e.GetMX()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	fmt.Println(string(json))
+	for dom, mx := range mapMX {
+
+		for host, val := range mx {
+
+			fmt.Println(dom, "-->", host, ":")
+
+			for k, v := range val.(map[string]any) {
+				switch strings.ToUpper(k) {
+
+				case "IP":
+					fmt.Println("\tIP:", v.([]net.IP))
+
+				case "PREF":
+					fmt.Println("\tPref:", v.(uint16))
+				}
+			}
+
+		}
+
+	}
+
 }

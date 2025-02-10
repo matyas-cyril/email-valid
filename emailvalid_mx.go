@@ -2,15 +2,15 @@ package emailvalid
 
 import (
 	"context"
-	libJson "encoding/json"
 	"fmt"
 	"net"
 	"time"
 )
 
 // Obtenir l'enregistrement MX du domaine
-// error = nil et []byte du json
-func (e *EmailValid) GetMX() (json []byte, err error) {
+// error = nil et map[string]any
+// <DOM_RECHERCHE> -> <HOSTS> -> "IP": []net.int , "Pref": int
+func (e *EmailValid) GetMX() (json map[string]map[string]any, err error) {
 
 	defer func() {
 		if err := recover(); err != nil {
@@ -20,7 +20,7 @@ func (e *EmailValid) GetMX() (json []byte, err error) {
 	}()
 
 	chErr := make(chan error, 1)
-	chByte := make(chan []byte, 1)
+	chByte := make(chan map[string]map[string]any, 1)
 
 	ctxTimeout, cancel := context.WithTimeout(context.Background(), time.Duration(e.timeout.mx)*time.Second)
 	defer cancel()
@@ -39,36 +39,24 @@ func (e *EmailValid) GetMX() (json []byte, err error) {
 			return
 		}
 
-		type data struct {
-			Name string
-			Ip   []net.IP
-			Pref uint16
-		}
-
-		type host struct {
-			Host []data
-		}
-
-		h := host{}
+		listMX := make(map[string]map[string]any)
 
 		for _, m := range mx {
 			ip, _ := net.LookupIP(m.Host)
-			d := data{
-				Name: m.Host,
-				Ip:   ip,
-				Pref: m.Pref,
+
+			// Ajout du premier enregistrement
+			if _, exists := listMX[string(e.domain)]; !exists {
+				listMX[string(e.domain)] = make(map[string]any)
 			}
-			h.Host = append(h.Host, d)
+
+			listMX[string(e.domain)][m.Host] = map[string]any{
+				"IP":   ip,
+				"Pref": m.Pref,
+			}
 
 		}
 
-		j, err := libJson.Marshal(h.Host)
-		if err != nil {
-			chErr <- err
-			return
-		}
-
-		chByte <- j
+		chByte <- listMX
 
 	}()
 
