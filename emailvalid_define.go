@@ -3,12 +3,12 @@ package emailvalid
 import "sync"
 
 type EmailValid struct {
-	OriginEmail string   // "Joe Lamèche" <joe.lameche@test.fr>
-	Email       string   // joe.lameche@test.fr
-	Name        string   // Joe Lamèche
-	Local       string   // joe.lameche
-	Domain      string   // TEST.FR
-	DomArrayInv []string // [FR TEST]
+	srcEmail    string   // "Joe Lamèche" <joe.lameche@test.fr>
+	email       string   // joe.lameche@test.fr
+	name        string   // Joe Lamèche
+	local       string   // joe.lameche
+	domain      string   // TEST.FR
+	domArrayInv []string // [FR TEST]
 	timeout     struct {
 		dmarc uint
 		mx    uint
