@@ -3,8 +3,6 @@ package emailvalid_test
 import (
 	"fmt"
 	myEmailValid "matyas-cyril/email-valid"
-	"net"
-	"strings"
 	"testing"
 )
 
@@ -39,22 +37,14 @@ func TestGetMX(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	for dom, mx := range mapMX {
+	for dom, tabMX := range mapMX {
 
-		for host, val := range mx {
+		fmt.Printf("%s:\n", dom)
 
-			fmt.Println(dom, "-->", host, ":")
+		for _, mx := range tabMX {
 
-			for k, v := range val.(map[string]any) {
-				switch strings.ToUpper(k) {
-
-				case "IP":
-					fmt.Println("\tIP:", v.([]net.IP))
-
-				case "PREF":
-					fmt.Println("\tPref:", v.(uint16))
-				}
-			}
+			fmt.Printf("\t%s -> @IP:%v\n", mx.Host, mx.IP)
+			fmt.Printf("\t%s -> Pref:%d\n", mx.Host, mx.Pref)
 
 		}
 

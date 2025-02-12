@@ -7,10 +7,16 @@ import (
 	"time"
 )
 
+type MX struct {
+	Host string
+	IP   []net.IP
+	Pref uint16
+}
+
 // Obtenir l'enregistrement MX du domaine
 // error = nil et map[string]any
 // <DOM_RECHERCHE> -> <HOSTS> -> "IP": []net.int , "Pref": int
-func (e *EmailValid) GetMX() (json map[string]map[string]any, err error) {
+func (e *EmailValid) GetMX() (json map[string][]MX, err error) {
 
 	defer func() {
 		if err := recover(); err != nil {
@@ -20,7 +26,7 @@ func (e *EmailValid) GetMX() (json map[string]map[string]any, err error) {
 	}()
 
 	chErr := make(chan error, 1)
-	chByte := make(chan map[string]map[string]any, 1)
+	chByte := make(chan map[string][]MX, 1)
 
 	ctxTimeout, cancel := context.WithTimeout(context.Background(), time.Duration(e.timeout.mx)*time.Second)
 	defer cancel()
@@ -39,20 +45,16 @@ func (e *EmailValid) GetMX() (json map[string]map[string]any, err error) {
 			return
 		}
 
-		listMX := make(map[string]map[string]any)
+		listMX := make(map[string][]MX)
 
 		for _, m := range mx {
 			ip, _ := net.LookupIP(m.Host)
 
-			// Ajout du premier enregistrement
-			if _, exists := listMX[string(e.domain)]; !exists {
-				listMX[string(e.domain)] = make(map[string]any)
-			}
-
-			listMX[string(e.domain)][m.Host] = map[string]any{
-				"IP":   ip,
-				"Pref": m.Pref,
-			}
+			listMX[e.domain] = append(listMX[e.domain], MX{
+				Host: m.Host,
+				IP:   ip,
+				Pref: m.Pref,
+			})
 
 		}
 
